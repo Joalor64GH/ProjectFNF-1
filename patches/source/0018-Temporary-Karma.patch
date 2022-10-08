@@ -50,10 +50,10 @@ index d8adc3c..ad0233f 100644
  		// flixel automatically saves your volume!
  		if(FlxG.save.data.volume != null)
 diff --git a/source/PlayState.hx b/source/PlayState.hx
-index 5bf1949..f15a0f0 100644
+index 572b073..2a84b22 100644
 --- a/source/PlayState.hx
 +++ b/source/PlayState.hx
-@@ -333,6 +333,7 @@ class PlayState extends MusicBeatState
+@@ -335,6 +335,7 @@ class PlayState extends MusicBeatState
  
  	private var oldLQ:Bool = ClientPrefs.lowQuality; // Avoids loading things into RAM that won't be rendered
  	private var vignette:FlxSprite;
@@ -61,7 +61,7 @@ index 5bf1949..f15a0f0 100644
  	override public function create()
  	{
  		Paths.clearStoredMemory();
-@@ -3044,6 +3045,11 @@ class PlayState extends MusicBeatState
+@@ -3061,6 +3062,11 @@ class PlayState extends MusicBeatState
  
  		// FlxG.watch.addQuick('VOL', vocals.amplitudeLeft);
  		// FlxG.watch.addQuick('VOLRight', vocals.amplitudeRight);
@@ -73,7 +73,7 @@ index 5bf1949..f15a0f0 100644
  
  		if (health > maxHealth) health = maxHealth;
  		healthPercentageDisplay = health / 0.02; // Don't round this for smooth health bar movement
-@@ -4529,6 +4535,7 @@ class PlayState extends MusicBeatState
+@@ -4571,6 +4577,7 @@ class PlayState extends MusicBeatState
  		combo = 0;
  		health -= daNote.missHealth * healthLoss;
  		if (ClientPrefs.missesDecreaseMaxHealth) maxHealth -= daNote.missHealth * healthLoss;
@@ -81,7 +81,7 @@ index 5bf1949..f15a0f0 100644
  		
  		if(instakillOnMiss)
  		{
-@@ -4591,6 +4598,7 @@ class PlayState extends MusicBeatState
+@@ -4642,6 +4649,7 @@ class PlayState extends MusicBeatState
  			}
  			health -= 0.05 * healthLoss;
  			if (ClientPrefs.missesDecreaseMaxHealth) maxHealth -= 0.05 * healthLoss;
@@ -89,9 +89,9 @@ index 5bf1949..f15a0f0 100644
  			if(instakillOnMiss)
  			{
  				vocals.volume = 0;
-@@ -4739,8 +4747,11 @@ class PlayState extends MusicBeatState
- 				if(combo > 9999) combo = 9999;
- 				popUpScore(note);
+@@ -4807,8 +4815,11 @@ class PlayState extends MusicBeatState
+ 				lastHitStrumTime = note.strumTime;
+ 				holdStrainTimer = 0.04;
  			}
 -			health += note.hitHealth * healthGain;
 -			healthDrained -= note.hitHealth * healthGain;
@@ -102,7 +102,7 @@ index 5bf1949..f15a0f0 100644
 +			healthDrained -= toAdd;
  
  			var animToPlay:String = singAnimations[Std.int(Math.abs(note.noteData))];
- 			if (SONG.notes[curSection].mustHitSection == !opponentPlay || (opponentPlay ? ClientPrefs.hideBf : ClientPrefs.hideOpponent)) moveCamera(opponentPlay, animToPlay);
+ 
 diff --git a/source/options/ModifiersSubState.hx b/source/options/ModifiersSubState.hx
 index 7166f0c..f104321 100644
 --- a/source/options/ModifiersSubState.hx

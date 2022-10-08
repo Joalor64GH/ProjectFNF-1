@@ -5,9 +5,9 @@ Subject: [PATCH] Add visual option 'Health Bar Position' and make the health bar
 
 ---
  source/ClientPrefs.hx               |  5 +++
- source/PlayState.hx                 | 47 ++++++++++++++++++++++++-----
+ source/PlayState.hx                 | 51 +++++++++++++++++++++++------
  source/options/VisualsUISubState.hx |  8 +++++
- 3 files changed, 52 insertions(+), 8 deletions(-)
+ 3 files changed, 54 insertions(+), 10 deletions(-)
 
 diff --git a/source/ClientPrefs.hx b/source/ClientPrefs.hx
 index 10df0e3..46eff0a 100644
@@ -40,10 +40,10 @@ index 10df0e3..46eff0a 100644
  		// flixel automatically saves your volume!
  		if(FlxG.save.data.volume != null)
 diff --git a/source/PlayState.hx b/source/PlayState.hx
-index 843149f..35ff44e 100644
+index d57d552..0d1ca17 100644
 --- a/source/PlayState.hx
 +++ b/source/PlayState.hx
-@@ -1186,7 +1186,7 @@ class PlayState extends MusicBeatState
+@@ -1189,7 +1189,7 @@ class PlayState extends MusicBeatState
  		healthBarBG.y = FlxG.height * 0.89;
  		healthBarBG.screenCenter(X);
  		healthBarBG.scrollFactor.set();
@@ -52,7 +52,7 @@ index 843149f..35ff44e 100644
  		healthBarBG.xAdd = -4;
  		healthBarBG.yAdd = -4;
  		add(healthBarBG);
-@@ -1196,25 +1196,26 @@ class PlayState extends MusicBeatState
+@@ -1199,25 +1199,26 @@ class PlayState extends MusicBeatState
  			'health', 0, 2);
  		healthBar.scrollFactor.set();
  		// healthBar
@@ -82,8 +82,8 @@ index 843149f..35ff44e 100644
 +		scoreTxt = new FlxText(0, ClientPrefs.healthBarType == 'Horizontal' ? healthBarBG.y + 36 : downScrollAccount, FlxG.width, "", 20);
  		scoreTxt.setFormat(Paths.font("vcr.ttf"), ClientPrefs.advancedScoreTxt ? 18 : 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
  		scoreTxt.scrollFactor.set();
- 		scoreTxt.borderSize = 1.15;
-@@ -1241,6 +1242,11 @@ class PlayState extends MusicBeatState
+ 		scoreTxt.borderSize = 1.25;
+@@ -1246,6 +1247,11 @@ class PlayState extends MusicBeatState
  		versionTxt.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
  		add(versionTxt);
  
@@ -95,13 +95,15 @@ index 843149f..35ff44e 100644
  		strumLineNotes.cameras = [camHUD];
  		grpNoteSplashes.cameras = [camHUD];
  		notes.cameras = [camHUD];
-@@ -3028,9 +3034,34 @@ class PlayState extends MusicBeatState
+@@ -3059,11 +3065,36 @@ class PlayState extends MusicBeatState
  
  		var iconOffset:Int = 26;
  
 -		iconP1.x = healthBar.x + (healthBar.width * (FlxMath.remapToRange(healthBar.percent, 0, 100, 100, 0) * 0.01)) + (150 * iconP1.scale.x - 150) / 2 - iconOffset;
 -		iconP2.x = healthBar.x + (healthBar.width * (FlxMath.remapToRange(healthBar.percent, 0, 100, 100, 0) * 0.01)) - (150 * iconP2.scale.x) / 2 - iconOffset * 2;
 -
+-		if (health > 2)
+-			health = 2;
 +		var axis:Float = ClientPrefs.healthBarType == 'Horizontal' ? healthBar.x : FlxG.height * 0.11;
 +		var newP1:Float = axis + ((healthBar.width * (FlxMath.remapToRange(healthPercentageBar, 0, 100, 100, 0) * 0.01)) + (150 * iconP1.scale.x - 150) / 2 - iconOffset);
 +		var oldP2:Float = axis + ((healthBar.width * (FlxMath.remapToRange(healthBar.percent, 0, 100, 100, 0) * 0.01)) - (150 * iconP2.scale.x) / 2 - iconOffset * 2);
@@ -130,11 +132,13 @@ index 843149f..35ff44e 100644
 +				healthBarBG.offset.y = 0;
 +			}
 +		}
- 		/*if (health > 2)
- 			health = 2;*/
++		/*if (health > 2)
++			health = 2;*/
  
+ 		if (healthPercentageBar < 20)
+ 			iconP1.animation.curAnim.curFrame = 1;
 diff --git a/source/options/VisualsUISubState.hx b/source/options/VisualsUISubState.hx
-index 0d38df2..a766802 100644
+index f4646d9..4ded12c 100644
 --- a/source/options/VisualsUISubState.hx
 +++ b/source/options/VisualsUISubState.hx
 @@ -132,6 +132,14 @@ class VisualsUISubState extends BaseOptionsMenu

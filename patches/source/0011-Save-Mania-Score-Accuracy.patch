@@ -1,0 +1,347 @@
+From c9fbb4a5e0eea4eb647a94d06bede446eab88a33 Mon Sep 17 00:00:00 2001
+From: Octol1ttle <l1ttleofficial@outlook.com>
+Date: Mon, 5 Sep 2022 23:55:22 +0500
+Subject: [PATCH] Save osu!mania score, accuracyV2 and performance points
+
+---
+ source/FreeplayState.hx  |  29 ++++++++--
+ source/Highscore.hx      | 111 ++++++++++++++++++++++++++++++++++-----
+ source/StoryMenuState.hx |  15 ++++++
+ 3 files changed, 139 insertions(+), 16 deletions(-)
+
+diff --git a/source/FreeplayState.hx b/source/FreeplayState.hx
+index a52b09b..11cd77b 100644
+--- a/source/FreeplayState.hx
++++ b/source/FreeplayState.hx
+@@ -38,6 +38,10 @@ class FreeplayState extends MusicBeatState
+ 	var diffText:FlxText;
+ 	var lerpScore:Int = 0;
+ 	var lerpRating:Float = 0;
++	var lerpManiaScore:Float = 0;
++	var lerpManiaRating:Float = 0;
++	var intendedManiaScore:Float = 0;
++	var intendedManiaRating:Float = 0;
+ 	var intendedScore:Int = 0;
+ 	var intendedRating:Float = 0;
+ 
+@@ -146,11 +150,11 @@ class FreeplayState extends MusicBeatState
+ 		scoreText = new FlxText(FlxG.width * 0.7, 5, 0, "", 32);
+ 		scoreText.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, RIGHT);
+ 
+-		scoreBG = new FlxSprite(scoreText.x - 6, 0).makeGraphic(1, 66, 0xFF000000);
++		scoreBG = new FlxSprite(scoreText.x - 6, 0).makeGraphic(1, 132, 0xFF000000);
+ 		scoreBG.alpha = 0.6;
+ 		add(scoreBG);
+ 
+-		diffText = new FlxText(scoreText.x, scoreText.y + 36, 0, "", 24);
++		diffText = new FlxText(scoreText.x, scoreText.y + 91, 0, "", 24);
+ 		diffText.font = scoreText.font;
+ 		add(diffText);
+ 
+@@ -255,6 +259,19 @@ class FreeplayState extends MusicBeatState
+ 			lerpScore = intendedScore;
+ 		if (Math.abs(lerpRating - intendedRating) <= 0.01)
+ 			lerpRating = intendedRating;
++		lerpManiaScore = FlxMath.roundDecimal(FlxMath.lerp(lerpManiaScore, intendedManiaScore, CoolUtil.boundTo(elapsed * 24, 0, 1)), 0);
++		lerpManiaRating = FlxMath.lerp(lerpManiaRating, intendedManiaRating, CoolUtil.boundTo(elapsed * 12, 0, 1));
++		if (Math.abs(lerpManiaRating - intendedManiaRating) <= 0.01)
++			lerpManiaRating = intendedManiaRating;
++
++		var maniaRatingSplit:Array<String> = Std.string(Highscore.floorDecimal(lerpManiaRating * 100, 2)).split('.');
++		if(maniaRatingSplit.length < 2) { //No decimals, add an empty space
++			maniaRatingSplit.push('');
++		}
++		
++		while(maniaRatingSplit[1].length < 2) { //Less than 2 decimals in it, add decimals then
++			maniaRatingSplit[1] += '0';
++		}
+ 
+ 		var ratingSplit:Array<String> = Std.string(Highscore.floorDecimal(lerpRating * 100, 2)).split('.');
+ 		if(ratingSplit.length < 2) { //No decimals, add an empty space
+@@ -265,7 +282,9 @@ class FreeplayState extends MusicBeatState
+ 			ratingSplit[1] += '0';
+ 		}
+ 
+-		scoreText.text = 'PERSONAL BEST: ' + lerpScore + ' (' + ratingSplit.join('.') + '%)';
++		scoreText.text = 'PERSONAL BEST (${FlxMath.roundDecimal(Highscore.getPerformancePoints(songs[curSelected].songName, curDifficulty), 1)}pp)\n';
++		scoreText.text += 'Vanilla: $lerpScore (${ratingSplit.join('.')}%)\n';
++		scoreText.text += 'o!mania: $lerpManiaScore (${maniaRatingSplit.join('.')}%)\n';
+ 		positionHighscore();
+ 
+ 		var upP = controls.UI_UP_P;
+@@ -424,6 +443,8 @@ class FreeplayState extends MusicBeatState
+ 		#if !switch
+ 		intendedScore = Highscore.getScore(songs[curSelected].songName, curDifficulty);
+ 		intendedRating = Highscore.getRating(songs[curSelected].songName, curDifficulty);
++		intendedManiaScore = Highscore.getManiaScore(songs[curSelected].songName, curDifficulty);
++		intendedManiaRating = Highscore.getManiaRating(songs[curSelected].songName, curDifficulty);
+ 		#end
+ 
+ 		PlayState.storyDifficulty = curDifficulty;
+@@ -460,6 +481,8 @@ class FreeplayState extends MusicBeatState
+ 		#if !switch
+ 		intendedScore = Highscore.getScore(songs[curSelected].songName, curDifficulty);
+ 		intendedRating = Highscore.getRating(songs[curSelected].songName, curDifficulty);
++		intendedManiaScore = Highscore.getManiaScore(songs[curSelected].songName, curDifficulty);
++		intendedManiaRating = Highscore.getManiaRating(songs[curSelected].songName, curDifficulty);
+ 		#end
+ 
+ 		var bullShit:Int = 0;
+diff --git a/source/Highscore.hx b/source/Highscore.hx
+index a77efad..8417135 100644
+--- a/source/Highscore.hx
++++ b/source/Highscore.hx
+@@ -10,10 +10,20 @@ class Highscore
+ 	public static var weekScores:Map<String, Int> = new Map();
+ 	public static var songScores:Map<String, Int> = new Map();
+ 	public static var songRating:Map<String, Float> = new Map();
++	public static var maniaSongScores:Map<String, Float> = new Map();
++	public static var maniaWeekScores:Map<String, Float> = new Map();
++	public static var maniaSongRating:Map<String, Float> = new Map();
++	public static var weekPerformance:Map<String, Float> = new Map();
++	public static var songPerformance:Map<String, Float> = new Map();
+ 	#else
+ 	public static var weekScores:Map<String, Int> = new Map();
+ 	public static var songScores:Map<String, Int> = new Map<String, Int>();
+ 	public static var songRating:Map<String, Float> = new Map<String, Float>();
++	public static var maniaSongScores:Map<String, Float> = new Map<String, Float>();
++	public static var maniaWeekScores:Map<String, Float> = new Map<String, Float>();
++	public static var maniaSongRating:Map<String, Float> = new Map<String, Float>();
++	public static var weekPerformance:Map<String, Float> = new Map<String, Float>();
++	public static var songPerformance:Map<String, Float> = new Map<String, Float>();
+ 	#end
+ 
+ 
+@@ -46,57 +56,67 @@ class Highscore
+ 		return newValue / tempMult;
+ 	}
+ 
+-	public static function saveScore(song:String, score:Int = 0, ?diff:Int = 0, ?rating:Float = -1):Void
++	public static function saveScore(song:String, score:Int = 0, ?diff:Int = 0, ?rating:Float = -1, ?maniaScore:Float = 0, ?maniaRating:Float = 0, ?perfPoints:Float = 0):Void
+ 	{
+ 		var daSong:String = formatSong(song, diff);
+ 
+ 		if (songScores.exists(daSong)) {
+-			if (songScores.get(daSong) < score) {
+-				setScore(daSong, score);
+-				if(rating >= 0) setRating(daSong, rating);
++			if (songScores.get(daSong) < score || maniaSongScores.get(daSong) < maniaScore) {
++				setScore(daSong, score, maniaScore, perfPoints);
++				if(rating >= 0) setRating(daSong, rating, maniaRating);
+ 			}
+ 		}
+ 		else {
+-			setScore(daSong, score);
+-			if(rating >= 0) setRating(daSong, rating);
++			setScore(daSong, score, maniaScore, perfPoints);
++			if(rating >= 0) setRating(daSong, rating, maniaRating);
+ 		}
+ 	}
+ 
+-	public static function saveWeekScore(week:String, score:Int = 0, ?diff:Int = 0):Void
++	public static function saveWeekScore(week:String, score:Int = 0, ?diff:Int = 0, ?maniaScore:Float = 0, ?perfPoints:Float = 0):Void
+ 	{
+ 		var daWeek:String = formatSong(week, diff);
+ 
+ 		if (weekScores.exists(daWeek))
+ 		{
+-			if (weekScores.get(daWeek) < score)
+-				setWeekScore(daWeek, score);
++			if (weekScores.get(daWeek) < score || maniaWeekScores.get(daWeek) < maniaScore)
++				setWeekScore(daWeek, score, maniaScore, perfPoints);
+ 		}
+ 		else
+-			setWeekScore(daWeek, score);
++			setWeekScore(daWeek, score, maniaScore, perfPoints);
+ 	}
+ 
+ 	/**
+ 	 * YOU SHOULD FORMAT SONG WITH formatSong() BEFORE TOSSING IN SONG VARIABLE
+ 	 */
+-	static function setScore(song:String, score:Int):Void
++	static function setScore(song:String, score:Int, ?maniaScore:Float = 0, ?perfPoints:Float = 0):Void
+ 	{
+ 		// Reminder that I don't need to format this song, it should come formatted!
+ 		songScores.set(song, score);
++		maniaSongScores.set(song, maniaScore);
++		songPerformance.set(song, perfPoints);
++		FlxG.save.data.maniaSongScores = maniaSongScores;
++		FlxG.save.data.songPerformance = songPerformance;
+ 		FlxG.save.data.songScores = songScores;
+ 		FlxG.save.flush();
+ 	}
+-	static function setWeekScore(week:String, score:Int):Void
++	static function setWeekScore(week:String, score:Int, ?maniaScore:Float = 0, ?perfPoints:Float = 0):Void
+ 	{
+ 		// Reminder that I don't need to format this song, it should come formatted!
+ 		weekScores.set(week, score);
++		maniaWeekScores.set(week, maniaScore);
++		weekPerformance.set(week, perfPoints);
++		FlxG.save.data.maniaWeekScores = maniaWeekScores;
++		FlxG.save.data.weekPerformance = weekPerformance;
+ 		FlxG.save.data.weekScores = weekScores;
+ 		FlxG.save.flush();
+ 	}
+ 
+-	static function setRating(song:String, rating:Float):Void
++	static function setRating(song:String, rating:Float, ?maniaRating:Float = 0):Void
+ 	{
+ 		// Reminder that I don't need to format this song, it should come formatted!
+ 		songRating.set(song, rating);
++		maniaSongRating.set(song, maniaRating);
++		FlxG.save.data.maniaSongRating = maniaSongRating;
+ 		FlxG.save.data.songRating = songRating;
+ 		FlxG.save.flush();
+ 	}
+@@ -133,6 +153,51 @@ class Highscore
+ 		return weekScores.get(daWeek);
+ 	}
+ 
++	public static function getManiaScore(song:String, diff:Int):Float
++	{
++		var daSong:String = formatSong(song, diff);
++		if (!maniaSongScores.exists(daSong))
++			return 0;
++
++		return maniaSongScores.get(daSong);
++	}
++
++	public static function getManiaRating(song:String, diff:Int):Float
++	{
++		var daSong:String = formatSong(song, diff);
++		if (!maniaSongRating.exists(daSong))
++			return 0;
++
++		return maniaSongRating.get(daSong);
++	}
++
++	public static function getManiaWeekScore(week:String, diff:Int):Float
++	{
++		var daWeek:String = formatSong(week, diff);
++		if (!maniaWeekScores.exists(daWeek))
++			return 0;
++
++		return maniaWeekScores.get(daWeek);
++	}
++
++	public static function getPerformancePoints(song:String, diff:Int):Float
++	{
++		var daSong:String = formatSong(song, diff);
++		if (!songPerformance.exists(daSong))
++			return 0;
++
++		return songPerformance.get(daSong);
++	}
++
++	public static function getWeekPerformancePoints(week:String, diff:Int):Float
++	{
++		var daWeek:String = formatSong(week, diff);
++		if (!weekPerformance.exists(daWeek))
++			return 0;
++
++		return weekPerformance.get(daWeek);
++	}
++
+ 	public static function load():Void
+ 	{
+ 		if (FlxG.save.data.weekScores != null)
+@@ -147,5 +212,25 @@ class Highscore
+ 		{
+ 			songRating = FlxG.save.data.songRating;
+ 		}
++		if (FlxG.save.data.maniaWeekScores != null)
++		{
++			maniaWeekScores = FlxG.save.data.maniaWeekScores;
++		}
++		if (FlxG.save.data.maniaSongScores != null)
++		{
++			maniaSongScores = FlxG.save.data.maniaSongScores;
++		}
++		if (FlxG.save.data.maniaSongRating != null)
++		{
++			maniaSongRating = FlxG.save.data.maniaSongRating;
++		}
++		if (FlxG.save.data.weekPerformance != null)
++		{
++			weekPerformance = FlxG.save.data.weekPerformance;
++		}
++		if (FlxG.save.data.songPerformance != null)
++		{
++			songPerformance = FlxG.save.data.songPerformance;
++		}
+ 	}
+ }
+\ No newline at end of file
+diff --git a/source/StoryMenuState.hx b/source/StoryMenuState.hx
+index 87da78b..908323e 100644
+--- a/source/StoryMenuState.hx
++++ b/source/StoryMenuState.hx
+@@ -26,6 +26,8 @@ class StoryMenuState extends MusicBeatState
+ 	public static var weekCompleted:Map<String, Bool> = new Map<String, Bool>();
+ 
+ 	var scoreText:FlxText;
++	var maniaScoreText:FlxText;
++	var performancePoints:Float = 0;
+ 
+ 	private static var lastDifficultyName:String = '';
+ 	var curDifficulty:Int = 1;
+@@ -61,6 +63,8 @@ class StoryMenuState extends MusicBeatState
+ 
+ 		scoreText = new FlxText(10, 10, 0, "SCORE: 49324858", 36);
+ 		scoreText.setFormat("VCR OSD Mono", 32);
++		maniaScoreText = new FlxText(scoreText.x + scoreText.width + 20, 10, 0, "o!mania: 49324858", 36);
++		maniaScoreText.setFormat("VCR OSD Mono", 32);
+ 
+ 		txtWeekTitle = new FlxText(FlxG.width * 0.7, 10, 0, "", 32);
+ 		txtWeekTitle.setFormat("VCR OSD Mono", 32, FlxColor.WHITE, RIGHT);
+@@ -180,6 +184,7 @@ class StoryMenuState extends MusicBeatState
+ 		add(txtTracklist);
+ 		// add(rankText);
+ 		add(scoreText);
++		add(maniaScoreText);
+ 		add(txtWeekTitle);
+ 
+ 		changeWeek();
+@@ -198,9 +203,13 @@ class StoryMenuState extends MusicBeatState
+ 	{
+ 		// scoreText.setFormat('VCR OSD Mono', 32);
+ 		lerpScore = Math.floor(FlxMath.lerp(lerpScore, intendedScore, CoolUtil.boundTo(elapsed * 30, 0, 1)));
++		lerpManiaScore = Math.floor(FlxMath.lerp(lerpManiaScore, intendedManiaScore, CoolUtil.boundTo(elapsed * 30, 0, 1)));
++		if(Math.abs(intendedManiaScore - lerpManiaScore) < 10) lerpManiaScore = intendedManiaScore;
+ 		if(Math.abs(intendedScore - lerpScore) < 10) lerpScore = intendedScore;
+ 
+ 		scoreText.text = "WEEK SCORE:" + lerpScore;
++		maniaScoreText.x = scoreText.x + scoreText.fieldWidth + 20;
++		maniaScoreText.text = "o!mania:" + lerpManiaScore + ' (${performancePoints}pp)';
+ 
+ 		// FlxG.watch.addQuick('font', scoreText.font);
+ 
+@@ -360,11 +369,15 @@ class StoryMenuState extends MusicBeatState
+ 
+ 		#if !switch
+ 		intendedScore = Highscore.getWeekScore(loadedWeeks[curWeek].fileName, curDifficulty);
++		intendedManiaScore = FlxMath.roundDecimal(Highscore.getManiaWeekScore(loadedWeeks[curWeek].fileName, curDifficulty), 0);
++		performancePoints = FlxMath.roundDecimal(Highscore.getWeekPerformancePoints(loadedWeeks[curWeek].fileName, curDifficulty), 0);
+ 		#end
+ 	}
+ 
+ 	var lerpScore:Int = 0;
+ 	var intendedScore:Int = 0;
++	var lerpManiaScore:Float = 0;
++	var intendedManiaScore:Float = 0;
+ 
+ 	function changeWeek(change:Int = 0):Void
+ 	{
+@@ -478,6 +491,8 @@ class StoryMenuState extends MusicBeatState
+ 
+ 		#if !switch
+ 		intendedScore = Highscore.getWeekScore(loadedWeeks[curWeek].fileName, curDifficulty);
++		intendedManiaScore = FlxMath.roundDecimal(Highscore.getManiaWeekScore(loadedWeeks[curWeek].fileName, curDifficulty), 0);
++		performancePoints = FlxMath.roundDecimal(Highscore.getWeekPerformancePoints(loadedWeeks[curWeek].fileName, curDifficulty), 0);
+ 		#end
+ 	}
+ }
+\ No newline at end of file
+-- 
+2.34.1.windows.1
+

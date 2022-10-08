@@ -10,7 +10,7 @@ Subject: [PATCH] Add visual option 'Vignette Strength'
  3 files changed, 26 insertions(+)
 
 diff --git a/source/ClientPrefs.hx b/source/ClientPrefs.hx
-index e7b860b..29a08fc 100644
+index 84fd327..26cd5ee 100644
 --- a/source/ClientPrefs.hx
 +++ b/source/ClientPrefs.hx
 @@ -80,6 +80,7 @@ class ClientPrefs {
@@ -40,10 +40,10 @@ index e7b860b..29a08fc 100644
  		// flixel automatically saves your volume!
  		if(FlxG.save.data.volume != null)
 diff --git a/source/PlayState.hx b/source/PlayState.hx
-index 41488d0..a3465df 100644
+index 973436f..9419825 100644
 --- a/source/PlayState.hx
 +++ b/source/PlayState.hx
-@@ -332,6 +332,7 @@ class PlayState extends MusicBeatState
+@@ -334,6 +334,7 @@ class PlayState extends MusicBeatState
  	var precacheList:Map<String, String> = new Map<String, String>();
  
  	private var oldLQ:Bool = ClientPrefs.lowQuality; // Avoids loading things into RAM that won't be rendered
@@ -51,7 +51,7 @@ index 41488d0..a3465df 100644
  	override public function create()
  	{
  		Paths.clearStoredMemory();
-@@ -1401,6 +1402,8 @@ class PlayState extends MusicBeatState
+@@ -1405,6 +1406,8 @@ class PlayState extends MusicBeatState
  			precacheList.set(Paths.formatToSongPath(ClientPrefs.pauseMusic), 'music');
  		}
  
@@ -60,9 +60,9 @@ index 41488d0..a3465df 100644
  		#if desktop
  		// Updating Discord Rich Presence.
  		DiscordClient.changePresence(detailsText, SONG.song + " (" + storyDifficultyText + ")", iconP2.getCharacter());
-@@ -3047,6 +3050,13 @@ class PlayState extends MusicBeatState
- 		if (ClientPrefs.advancedScoreTxt && oldPercentage != Highscore.floorDecimal(healthPercentageDisplay, 0))
- 			updateScore(true);
+@@ -3093,6 +3096,13 @@ class PlayState extends MusicBeatState
+ 		if (strainTime > 0)
+ 			holdStrainTimer = Math.max(0, holdStrainTimer - elapsed);
  
 +		if (vignette == null) {
 +			vignette = new FlxSprite().loadGraphic(Paths.image('vignette'));
@@ -75,10 +75,10 @@ index 41488d0..a3465df 100644
  		iconP1.scale.set(mult, mult);
  		iconP1.updateHitbox();
 diff --git a/source/options/VisualsUISubState.hx b/source/options/VisualsUISubState.hx
-index 3d80f1b..d2f6623 100644
+index 4ded12c..bf6fc8b 100644
 --- a/source/options/VisualsUISubState.hx
 +++ b/source/options/VisualsUISubState.hx
-@@ -127,6 +127,17 @@ class VisualsUISubState extends BaseOptionsMenu
+@@ -140,6 +140,17 @@ class VisualsUISubState extends BaseOptionsMenu
  			['Vertical (left)', 'Vertical (right)', 'Horizontal', 'Disabled']);
  		addOption(option);
  

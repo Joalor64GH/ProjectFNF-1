@@ -24,7 +24,7 @@ index 15ebe4d..dcdb16d 100644
  
  	public function getOptionByName(name:String)
 diff --git a/source/PlayState.hx b/source/PlayState.hx
-index bd01eb4..ef62a67 100644
+index 13134fc..0aa7b8c 100644
 --- a/source/PlayState.hx
 +++ b/source/PlayState.hx
 @@ -191,6 +191,7 @@ class PlayState extends MusicBeatState
@@ -83,16 +83,18 @@ index bd01eb4..ef62a67 100644
  			{
  				playerStrums.add(babyArrow);
  			}
-@@ -4351,7 +4358,7 @@ class PlayState extends MusicBeatState
+@@ -4349,8 +4356,8 @@ class PlayState extends MusicBeatState
  			});
  		}
  
 -		var char:Character = boyfriend;
+-		if(daNote.gfNote) {
 +		var char:Character = opponentPlay ? dad : boyfriend;
- 		if(daNote.gfNote) {
++		if(daNote.gfNote && gf != null) {
  			char = gf;
  		}
-@@ -4371,6 +4378,7 @@ class PlayState extends MusicBeatState
+ 
+@@ -4369,6 +4376,7 @@ class PlayState extends MusicBeatState
  
  		if (!boyfriend.stunned)
  		{
@@ -100,7 +102,7 @@ index bd01eb4..ef62a67 100644
  			health -= 0.05 * healthLoss;
  			if(instakillOnMiss)
  			{
-@@ -4412,8 +4420,8 @@ class PlayState extends MusicBeatState
+@@ -4408,8 +4416,8 @@ class PlayState extends MusicBeatState
  			});
  			}
  
@@ -111,7 +113,7 @@ index bd01eb4..ef62a67 100644
  			}
  			vocals.volume = 0;
  		}
-@@ -4425,10 +4433,13 @@ class PlayState extends MusicBeatState
+@@ -4421,10 +4429,13 @@ class PlayState extends MusicBeatState
  		if (Paths.formatToSongPath(SONG.song) != 'tutorial')
  			camZooming = true;
  
@@ -120,7 +122,7 @@ index bd01eb4..ef62a67 100644
 -			dad.specialAnim = true;
 -			dad.heyTimer = 0.6;
 +		var char:Character = opponentPlay ? boyfriend : dad;
-+		if (note.gfNote) char = gf;
++		if (note.gfNote && gf != null) char = gf;
 +		var animToPlay:String = singAnimations[Std.int(Math.abs(note.noteData))];
 +		if(note.noteType == 'Hey!' && char.animOffsets.exists('hey')) {
 +			char.playAnim('hey', true);
@@ -129,7 +131,7 @@ index bd01eb4..ef62a67 100644
  		} else if(!note.noAnimation) {
  			var altAnim:String = note.animSuffix;
  
-@@ -4439,15 +4450,15 @@ class PlayState extends MusicBeatState
+@@ -4435,15 +4446,15 @@ class PlayState extends MusicBeatState
  				}
  			}
  
@@ -148,7 +150,7 @@ index bd01eb4..ef62a67 100644
  				char.holdTimer = 0;
  			}
  		}
-@@ -4487,6 +4498,8 @@ class PlayState extends MusicBeatState
+@@ -4483,6 +4494,8 @@ class PlayState extends MusicBeatState
  				FlxG.sound.play(Paths.sound('hitsound'), ClientPrefs.hitsoundVolume);
  			}
  
@@ -157,7 +159,7 @@ index bd01eb4..ef62a67 100644
  			if(note.hitCausesMiss) {
  				noteMiss(note);
  				if(!note.noteSplashDisabled && !note.isSustainNote) {
-@@ -4497,9 +4510,9 @@ class PlayState extends MusicBeatState
+@@ -4493,9 +4506,9 @@ class PlayState extends MusicBeatState
  				{
  					switch(note.noteType) {
  						case 'Hurt Note': //Hurt note
@@ -170,7 +172,7 @@ index bd01eb4..ef62a67 100644
  							}
  					}
  				}
-@@ -4526,7 +4539,7 @@ class PlayState extends MusicBeatState
+@@ -4522,7 +4535,7 @@ class PlayState extends MusicBeatState
  			if(!note.noAnimation) {
  				var animToPlay:String = singAnimations[Std.int(Math.abs(note.noteData))];
  
@@ -179,7 +181,7 @@ index bd01eb4..ef62a67 100644
  				{
  					if(gf != null)
  					{
-@@ -4538,13 +4551,15 @@ class PlayState extends MusicBeatState
+@@ -4534,13 +4547,15 @@ class PlayState extends MusicBeatState
  				{
  					boyfriend.playAnim(animToPlay + note.animSuffix, true);
  					boyfriend.holdTimer = 0;
@@ -200,7 +202,7 @@ index bd01eb4..ef62a67 100644
  					}
  
  					if(gf != null && gf.animOffsets.exists('cheer')) {
-@@ -4997,7 +5012,7 @@ class PlayState extends MusicBeatState
+@@ -4993,7 +5008,7 @@ class PlayState extends MusicBeatState
  	function StrumPlayAnim(isDad:Bool, id:Int, time:Float) {
  		var spr:StrumNote = null;
  		if(isDad) {

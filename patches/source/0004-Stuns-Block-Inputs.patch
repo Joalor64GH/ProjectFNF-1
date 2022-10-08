@@ -40,7 +40,7 @@ index f2d6429..8026b40 100644
  		// flixel automatically saves your volume!
  		if(FlxG.save.data.volume != null)
 diff --git a/source/PlayState.hx b/source/PlayState.hx
-index d0a5d69..b02bec5 100644
+index 2d2865e..13134fc 100644
 --- a/source/PlayState.hx
 +++ b/source/PlayState.hx
 @@ -4335,6 +4335,20 @@ class PlayState extends MusicBeatState

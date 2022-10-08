@@ -4,14 +4,14 @@ Date: Mon, 11 Jul 2022 23:25:57 +0500
 Subject: [PATCH] Make botplay act like a real player
 
 ---
- source/PlayState.hx | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ source/PlayState.hx | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/source/PlayState.hx b/source/PlayState.hx
-index 55a8fb8..d4ab4c1 100644
+index d98b834..40fa631 100644
 --- a/source/PlayState.hx
 +++ b/source/PlayState.hx
-@@ -2322,7 +2322,7 @@ class PlayState extends MusicBeatState
+@@ -2364,7 +2364,7 @@ class PlayState extends MusicBeatState
  				new FlxTextFormatMarkerPair(blackFormat, '=')
  			]);
  
@@ -20,16 +20,16 @@ index 55a8fb8..d4ab4c1 100644
  		{
  			if(scoreTxtTween != null) {
  				scoreTxtTween.cancel();
-@@ -3307,7 +3307,7 @@ class PlayState extends MusicBeatState
- 						if(daNote.canBeHit) {
+@@ -3361,7 +3361,7 @@ class PlayState extends MusicBeatState
  							goodNoteHit(daNote);
+ 							if (!daNote.wasGoodHit) strainKeys[daNote.noteData] += Math.log(songSpeed) * Math.exp(Conductor.songPosition / songLength) * (holdStrainTimer > 0 ? 0.2 : 0.05);
  						}
 -					} else if(daNote.strumTime <= Conductor.songPosition || (daNote.isSustainNote && daNote.canBeHit && daNote.mustPress)) {
 +					} else if(!daNote.ignoreNote && !daNote.hitCausesMiss && (daNote.strumTime <= Conductor.songPosition || (daNote.isSustainNote && daNote.canBeHit && daNote.mustPress))) {
  						goodNoteHit(daNote);
  					}
  				}
-@@ -3343,7 +3343,7 @@ class PlayState extends MusicBeatState
+@@ -3397,7 +3397,7 @@ class PlayState extends MusicBeatState
  				// Kill extremely late notes and cause misses
  				if (Conductor.songPosition > noteKillOffset + daNote.strumTime)
  				{
@@ -38,15 +38,6 @@ index 55a8fb8..d4ab4c1 100644
  						noteMiss(daNote);
  					}
  
-@@ -4191,7 +4191,7 @@ class PlayState extends MusicBeatState
- 			spawnNoteSplashOnNote(note);
- 		}
- 
--		if(/*!practiceMode && */!cpuControlled) {
-+		if(/*!practiceMode && !cpuControlled*/true) {
- 			if (ClientPrefs.scoreSystem == 'osu!mania') {
- 				bonus += daRating.hitBonus - daRating.hitPunishment;
- 				if (bonus < 0) bonus = 0;
 -- 
 2.34.1.windows.1
 

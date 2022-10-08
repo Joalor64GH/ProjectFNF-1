@@ -40,33 +40,33 @@ index dbe9f15..683c4e3 100644
  		// flixel automatically saves your volume!
  		if(FlxG.save.data.volume != null)
 diff --git a/source/PlayState.hx b/source/PlayState.hx
-index 960d983..13635e5 100644
+index 3970f72..e18eeb7 100644
 --- a/source/PlayState.hx
 +++ b/source/PlayState.hx
-@@ -4369,6 +4369,7 @@ class PlayState extends MusicBeatState
+@@ -4373,6 +4373,7 @@ class PlayState extends MusicBeatState
  			char = gf;
  		}
  
-+		FlxG.camera.shake(ClientPrefs.missShakeIntensity / 100, 0.5, null, true, singAnimations[Std.int(Math.abs(daNote.noteData))].endsWith('UP') || singAnimations[Std.int(Math.abs(daNote.noteData))].endsWith('DOWN') ? flixel.util.FlxAxes.Y : flixel.util.FlxAxes.X);
++		FlxG.camera.shake(ClientPrefs.missShakeIntensity * 0.01, 0.5, null, true, singAnimations[Std.int(Math.abs(daNote.noteData))].endsWith('UP') || singAnimations[Std.int(Math.abs(daNote.noteData))].endsWith('DOWN') ? flixel.util.FlxAxes.Y : flixel.util.FlxAxes.X);
  		if(char != null && !daNote.noMissAnimation && char.hasMissAnimations)
  		{
  			var animToPlay:String = singAnimations[Std.int(Math.abs(daNote.noteData))] + 'miss' + daNote.animSuffix;
-@@ -4426,6 +4427,7 @@ class PlayState extends MusicBeatState
+@@ -4428,6 +4429,7 @@ class PlayState extends MusicBeatState
  			});
  			}
  
-+			FlxG.camera.shake(ClientPrefs.missShakeIntensity / 100, 0.5, null, true, singAnimations[Std.int(Math.abs(direction))].endsWith('UP') || singAnimations[Std.int(Math.abs(direction))].endsWith('DOWN') ? flixel.util.FlxAxes.Y : flixel.util.FlxAxes.X);
++			FlxG.camera.shake(ClientPrefs.missShakeIntensity * 0.01, 0.5, null, true, singAnimations[Std.int(Math.abs(direction))].endsWith('UP') || singAnimations[Std.int(Math.abs(direction))].endsWith('DOWN') ? flixel.util.FlxAxes.Y : flixel.util.FlxAxes.X);
  			if(char.hasMissAnimations) {
  				char.playAnim(singAnimations[Std.int(Math.abs(direction))] + 'miss', true);
  			}
 diff --git a/source/options/VisualsUISubState.hx b/source/options/VisualsUISubState.hx
-index 4c67547..476abf1 100644
+index cbcb87f..5d65c8d 100644
 --- a/source/options/VisualsUISubState.hx
 +++ b/source/options/VisualsUISubState.hx
 @@ -101,6 +101,18 @@ class VisualsUISubState extends BaseOptionsMenu
  		option.changeValue = 10;
  		addOption(option);
- 		
+ 
 +		var option:Option = new Option('Miss Shake Intensity',
 +			'How much does the screen shake when missing a note',
 +			'missShakeIntensity',
@@ -78,7 +78,7 @@ index 4c67547..476abf1 100644
 +		option.changeValue = 0.1;
 +		option.onChange = onChangeMissShakeIntensity;
 +		addOption(option);
-+		
++
  		#if !mobile
  		var option:Option = new Option('FPS Counter',
  			'If unchecked, hides FPS Counter.',
@@ -88,7 +88,7 @@ index 4c67547..476abf1 100644
  	}
 +	function onChangeMissShakeIntensity()
 +	{
-+		FlxG.camera.shake(ClientPrefs.missShakeIntensity / 100);
++		FlxG.camera.shake(ClientPrefs.missShakeIntensity * 0.01);
 +	}
  
  	override function destroy()

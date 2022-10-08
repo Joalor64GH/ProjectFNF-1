@@ -40,10 +40,23 @@ index 8026b40..dbe9f15 100644
  		// flixel automatically saves your volume!
  		if(FlxG.save.data.volume != null)
 diff --git a/source/PlayState.hx b/source/PlayState.hx
-index 8cead4e..99e2c94 100644
+index 0aa7b8c..80aa463 100644
 --- a/source/PlayState.hx
 +++ b/source/PlayState.hx
-@@ -3687,20 +3687,26 @@ class PlayState extends MusicBeatState
+@@ -3667,10 +3667,10 @@ class PlayState extends MusicBeatState
+ 
+ 		if (gf != null && SONG.notes[curSection].gfSection)
+ 		{
+-			camFollow.set(gf.getMidpoint().x, gf.getMidpoint().y);
++			/*camFollow.set(gf.getMidpoint().x, gf.getMidpoint().y);
+ 			camFollow.x += gf.cameraPosition[0] + girlfriendCameraOffset[0];
+ 			camFollow.y += gf.cameraPosition[1] + girlfriendCameraOffset[1];
+-			tweenCamIn();
++			tweenCamIn();*/ moveCamera(false);
+ 			callOnLuas('onMoveCamera', ['gf']);
+ 			return;
+ 		}
+@@ -3688,20 +3688,32 @@ class PlayState extends MusicBeatState
  	}
  
  	var cameraTwn:FlxTween;
@@ -56,6 +69,12 @@ index 8cead4e..99e2c94 100644
 +		if (direction.endsWith("DOWN")) addY += ClientPrefs.cameraMoveIntensity;
 +		if (direction.endsWith("LEFT")) addX -= ClientPrefs.cameraMoveIntensity;
 +		if (direction.endsWith("RIGHT")) addX += ClientPrefs.cameraMoveIntensity;
++		if (SONG.notes[curSection].gfSection) {
++			camFollow.set(gf.getMidpoint().x, gf.getMidpoint().y);
++			camFollow.x += gf.cameraPosition[0] + girlfriendCameraOffset[0] + addX;
++			camFollow.y += gf.cameraPosition[1] + girlfriendCameraOffset[1] + addY;
++			tweenCamIn();
++		} else
  		if(isDad)
  		{
  			camFollow.set(dad.getMidpoint().x + 150, dad.getMidpoint().y - 100);
@@ -75,27 +94,33 @@ index 8cead4e..99e2c94 100644
  
  			if (Paths.formatToSongPath(SONG.song) == 'tutorial' && cameraTwn == null && FlxG.camera.zoom != 1)
  			{
-@@ -4416,6 +4422,7 @@ class PlayState extends MusicBeatState
+@@ -4432,6 +4444,9 @@ class PlayState extends MusicBeatState
  		var char:Character = opponentPlay ? boyfriend : dad;
- 		if (note.gfNote) char = gf;
+ 		if (note.gfNote && gf != null) char = gf;
  		var animToPlay:String = singAnimations[Std.int(Math.abs(note.noteData))];
-+		if (!SONG.notes[curSection].mustHitSection == !opponentPlay) moveCamera(!opponentPlay, animToPlay);
++		if (char != gf) {
++			if (!SONG.notes[curSection].mustHitSection == !opponentPlay) moveCamera(!opponentPlay, animToPlay);
++		} else if (SONG.notes[curSection].gfSection) moveCamera(!opponentPlay, animToPlay);
  		if(note.noteType == 'Hey!' && char.animOffsets.exists('hey')) {
  			char.playAnim('hey', true);
  			char.specialAnim = true;
-@@ -4516,8 +4523,9 @@ class PlayState extends MusicBeatState
+@@ -4532,9 +4547,12 @@ class PlayState extends MusicBeatState
  			health += note.hitHealth * healthGain;
  			healthDrained -= note.hitHealth * healthGain;
  
-+			var animToPlay:String = singAnimations[Std.int(Math.abs(note.noteData))];
-+			if (SONG.notes[curSection].mustHitSection == !opponentPlay) moveCamera(opponentPlay, animToPlay);
- 			if(!note.noAnimation) {
+-			if(!note.noAnimation) {
 -				var animToPlay:String = singAnimations[Std.int(Math.abs(note.noteData))];
++			var animToPlay:String = singAnimations[Std.int(Math.abs(note.noteData))];
  
++			if (char != gf) {
++				if (SONG.notes[curSection].mustHitSection == !opponentPlay) moveCamera(opponentPlay, animToPlay);
++			} else if (!SONG.notes[curSection].gfSection) moveCamera(!opponentPlay, animToPlay);
++			if(!note.noAnimation) {
  				/*if(note.gfNote)
  				{
+ 					if(gf != null)
 diff --git a/source/options/VisualsUISubState.hx b/source/options/VisualsUISubState.hx
-index 9c798e4..4c67547 100644
+index 9c798e4..cbcb87f 100644
 --- a/source/options/VisualsUISubState.hx
 +++ b/source/options/VisualsUISubState.hx
 @@ -89,6 +89,18 @@ class VisualsUISubState extends BaseOptionsMenu
@@ -113,7 +138,7 @@ index 9c798e4..4c67547 100644
 +		option.maxValue = 200;
 +		option.changeValue = 10;
 +		addOption(option);
-+		
++
  		#if !mobile
  		var option:Option = new Option('FPS Counter',
  			'If unchecked, hides FPS Counter.',

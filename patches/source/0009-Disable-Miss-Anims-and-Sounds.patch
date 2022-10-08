@@ -1,13 +1,13 @@
-From fcf8f5e3354a3c36adf54bf206912044033e0bf7 Mon Sep 17 00:00:00 2001
+From 3acf15ae397b905c3eeb2cf010eacfa2a6d8cf04 Mon Sep 17 00:00:00 2001
 From: l1ttleO <l1ttleofficial@outlook.com>
 Date: Fri, 1 Jul 2022 21:44:06 +0500
 Subject: [PATCH] Add gameplay option 'Play Miss Anims and Sounds'
 
 ---
  source/ClientPrefs.hx                      |  5 +++++
- source/PlayState.hx                        | 25 ++++++++++++++++------
+ source/PlayState.hx                        | 26 +++++++++++++++++-----
  source/options/GameplaySettingsSubState.hx |  7 ++++++
- 3 files changed, 31 insertions(+), 6 deletions(-)
+ 3 files changed, 32 insertions(+), 6 deletions(-)
 
 diff --git a/source/ClientPrefs.hx b/source/ClientPrefs.hx
 index 7361c8a..3368b24 100644
@@ -40,10 +40,10 @@ index 7361c8a..3368b24 100644
  		// flixel automatically saves your volume!
  		if(FlxG.save.data.volume != null)
 diff --git a/source/PlayState.hx b/source/PlayState.hx
-index 587e139..c6f233f 100644
+index 6d8a3d0..42ed24d 100644
 --- a/source/PlayState.hx
 +++ b/source/PlayState.hx
-@@ -4229,9 +4229,9 @@ class PlayState extends MusicBeatState
+@@ -4226,9 +4226,9 @@ class PlayState extends MusicBeatState
  				}
  				else{
  					callOnLuas('onGhostTap', [key]);
@@ -55,7 +55,7 @@ index 587e139..c6f233f 100644
  				}
  
  				// I dunno what you need this for but here you go
-@@ -4377,6 +4377,7 @@ class PlayState extends MusicBeatState
+@@ -4374,6 +4374,7 @@ class PlayState extends MusicBeatState
  				note.destroy();
  			}
  		});
@@ -63,10 +63,10 @@ index 587e139..c6f233f 100644
  		combo = 0;
  		health -= daNote.missHealth * healthLoss;
  		
-@@ -4418,22 +4419,34 @@ class PlayState extends MusicBeatState
+@@ -4413,22 +4414,35 @@ class PlayState extends MusicBeatState
  		}
  
- 		FlxG.camera.shake(ClientPrefs.missShakeIntensity / 100, 0.5, null, true, singAnimations[Std.int(Math.abs(daNote.noteData))].endsWith('UP') || singAnimations[Std.int(Math.abs(daNote.noteData))].endsWith('DOWN') ? flixel.util.FlxAxes.Y : flixel.util.FlxAxes.X);
+ 		FlxG.camera.shake(ClientPrefs.missShakeIntensity * 0.01, 0.5, null, true, singAnimations[Std.int(Math.abs(daNote.noteData))].endsWith('UP') || singAnimations[Std.int(Math.abs(daNote.noteData))].endsWith('DOWN') ? flixel.util.FlxAxes.Y : flixel.util.FlxAxes.X);
 +		if (ClientPrefs.missAnimsSounds) {
  		if(char != null && !daNote.noMissAnimation && char.hasMissAnimations)
  		{
@@ -92,14 +92,15 @@ index 587e139..c6f233f 100644
 +				if (!ClientPrefs.ghostTapping) FlxG.sound.play(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.1, 0.2));
 +			}
 +			if (ClientPrefs.ghostTapping) {
-+				
++
++
 +
 +				return;
 +			}
  			health -= 0.05 * healthLoss;
  			if(instakillOnMiss)
  			{
-@@ -4455,7 +4468,7 @@ class PlayState extends MusicBeatState
+@@ -4450,7 +4464,7 @@ class PlayState extends MusicBeatState
  			totalPlayed++;
  			RecalculateRating(true);
  
@@ -108,10 +109,10 @@ index 587e139..c6f233f 100644
  			// FlxG.sound.play(Paths.sound('missnote1'), 1, false);
  			// FlxG.log.add('played imss note');
  
-@@ -4477,9 +4490,9 @@ class PlayState extends MusicBeatState
+@@ -4470,9 +4484,9 @@ class PlayState extends MusicBeatState
  			}
  
- 			FlxG.camera.shake(ClientPrefs.missShakeIntensity / 100, 0.5, null, true, singAnimations[Std.int(Math.abs(direction))].endsWith('UP') || singAnimations[Std.int(Math.abs(direction))].endsWith('DOWN') ? flixel.util.FlxAxes.Y : flixel.util.FlxAxes.X);
+ 			FlxG.camera.shake(ClientPrefs.missShakeIntensity * 0.01, 0.5, null, true, singAnimations[Std.int(Math.abs(direction))].endsWith('UP') || singAnimations[Std.int(Math.abs(direction))].endsWith('DOWN') ? flixel.util.FlxAxes.Y : flixel.util.FlxAxes.X);
 -			if(char.hasMissAnimations) {
 +			/*if(char.hasMissAnimations) {
  				char.playAnim(singAnimations[Std.int(Math.abs(direction))] + 'miss', true);
@@ -121,11 +122,11 @@ index 587e139..c6f233f 100644
  		}
  		callOnLuas('noteMissPress', [direction]);
 diff --git a/source/options/GameplaySettingsSubState.hx b/source/options/GameplaySettingsSubState.hx
-index ad4a839..dba113a 100644
+index 1ae7d29..de29ee8 100644
 --- a/source/options/GameplaySettingsSubState.hx
 +++ b/source/options/GameplaySettingsSubState.hx
 @@ -106,6 +106,13 @@ class GameplaySettingsSubState extends BaseOptionsMenu
- 			['osu!mania (strict)', 'osu!mania (normal)', 'Psych']);
+ 			['osu!mania (ScoreV2)', 'osu!mania (ScoreV1)', 'Psych']);
  		addOption(option);
  
 +		var option:Option = new Option('Play Miss Anims and Sounds', //Name
